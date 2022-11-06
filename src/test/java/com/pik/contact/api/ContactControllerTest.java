@@ -3,28 +3,22 @@ package com.pik.contact.api;
 import com.pik.contact.Application;
 import com.pik.contact.domain.Contact;
 import com.pik.contact.repository.ContactRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DirtiesContext
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
-@WebAppConfiguration
-public class ContactControllerTest {
+public class ContactControllerTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     ContactRepository repository;
@@ -32,7 +26,7 @@ public class ContactControllerTest {
     @Autowired
     ContactController controller;
 
-    @Before
+    @BeforeClass
     public void setup() {
         repository.deleteAll();
         mockMvc = buildMockMvc(controller);
@@ -50,10 +44,11 @@ public class ContactControllerTest {
     public void should_save_contact() throws Exception {
         MvcResult result = mockMvc.perform(post("/rest/contacts").contentType(APPLICATION_JSON)
                 .content("{\"name\":\"John\",\"fullName\":\"Doe\"}"))
-                .andExpect(status().isCreated())
+                .andExpect(status().isCreated()) // 201
                 .andReturn();
 
         Contact contact = repository.findById(result.getResponse().getContentAsString()).orElse(null);
+        assert contact != null;
         assertThat(contact.getName()).isEqualTo("John");
         assertThat(contact.getFullName()).isEqualTo("Doe");
     }
